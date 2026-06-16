@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "table-of-contents",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "This plugin generates a table of contents for Obsidian notes.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
