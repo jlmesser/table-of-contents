@@ -3,7 +3,7 @@
 	"name": "Table Of Contents",
 	"version": "1.0.0",
 	"minAppVersion": "1.0.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
+	"description": "This plugin generates a table of contents for Obsidian notes.",
 	"author": "Obsidian",
 	"authorUrl": "https://obsidian.md",
 	"fundingUrl": "https://obsidian.md/pricing",

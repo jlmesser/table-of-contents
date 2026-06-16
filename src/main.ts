@@ -8,6 +8,7 @@ import {
 	TocPluginSettings,
 	TocSettingTab,
 } from './settings';
+import { cleanMarkdown } from './markdown';
 
 //todo add tests!!
 export default class TableOfContents extends Plugin {
@@ -36,18 +37,6 @@ export default class TableOfContents extends Plugin {
 			let currentIndent = 0;
 			const headingStack: number[] = [];
 			const tocLines: string[] = [];
-
-			// Helper function to clean Markdown formatting characters
-			const cleanMarkdown = (text: string): string => {
-				return text
-					.replace(/\*\*|__/g, "") //bold
-					.replace(/[*_]/g, "") //italic
-					.replace(/==/g, "") //highlight
-					.replace(/`([^`]+)`/g, "$1") //code block
-					.trim();
-				//todo add handling for strikethrough and other Markdown stuff
-				//(there might be a strip formatting helper method somewhere)
-			};
 
 			//todo refactor out - process the headings list
 			headings.forEach(heading => {

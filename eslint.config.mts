@@ -14,19 +14,30 @@ export default tseslint.config(
 		'package.json',
 		'package-lock.json',
 		'tsconfig.json',
+		'tsconfig.spec.json',
+		'jest.config.cjs',
 	]),
 	{
 		languageOptions: {
 			globals: {
 				...globals.browser,
+				...globals.jest,
 			},
 			parserOptions: {
 				projectService: {
-					allowDefaultProject: ['eslint.config.mts', 'manifest.json'],
+					allowDefaultProject: [
+						'eslint.config.mts',
+						'manifest.json',
+						'tests/*.ts',
+					],
 				},
 				tsconfigRootDir: import.meta.dirname,
 				extraFileExtensions: ['.json'],
 			},
+		},
+		rules: {
+			'no-unused-vars': 'warn',
+			'no-undef': 'warn',
 		},
 	},
 	...obsidianmd.configs.recommended,
