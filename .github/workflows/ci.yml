@@ -1,4 +1,4 @@
-name: Node.js build
+name: CI
 
 on:
     push:
@@ -7,7 +7,7 @@ on:
         branches: ['**']
 
 jobs:
-    build:
+    ci:
         runs-on: ubuntu-latest
 
         strategy:
@@ -25,3 +25,4 @@ jobs:
             - run: npm ci
             - run: npm run build --if-present
             - run: npm run lint
+            - run: npm test
