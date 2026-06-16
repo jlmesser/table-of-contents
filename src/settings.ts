@@ -1,15 +1,15 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import TableOfContents from './main';
 
-export interface MyPluginSettings {
+export interface TocPluginSettings {
 	mySetting: string;
 }
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
+export const DEFAULT_SETTINGS: TocPluginSettings = {
 	mySetting: 'default',
 };
 
-export class SampleSettingTab extends PluginSettingTab {
+export class TocSettingTab extends PluginSettingTab {
 	plugin: TableOfContents;
 
 	constructor(app: App, plugin: TableOfContents) {

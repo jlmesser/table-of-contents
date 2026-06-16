@@ -1,22 +1,23 @@
 import {
 	Plugin,
 	MarkdownRenderer,
+	MarkdownRenderChild,
 } from 'obsidian';
 import {
 	DEFAULT_SETTINGS,
-	MyPluginSettings,
-	SampleSettingTab,
+	TocPluginSettings,
+	TocSettingTab,
 } from './settings';
 
 //todo add tests!!
 export default class TableOfContents extends Plugin {
-	settings!: MyPluginSettings;
+	settings!: TocPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
 
 		//todo add stuff to readme about how to use this
-		this.registerMarkdownCodeBlockProcessor("custom-toc", async (_source, el, ctx) => {
+		this.registerMarkdownCodeBlockProcessor("custom-toc", async (source, el, ctx) => {
 
 			const activeFile = this.app.workspace.getActiveFile();
 			if (!activeFile) return;
@@ -28,7 +29,7 @@ export default class TableOfContents extends Plugin {
 			el.empty();
 
 			if (headings.length === 0) {
-				el.createEl("p", { text: "No headings found to generate ToC", cls: "toc-empty-msg" });
+				el.createEl("p", { text: "No headings found to generate table of contents", cls: "toc-empty-msg" });
 				return;
 			}
 
@@ -92,17 +93,20 @@ export default class TableOfContents extends Plugin {
 			});
 
 			const fullMarkdownToc = tocLines.join('\n');
+			const renderChild = new MarkdownRenderChild(el);
+			ctx.addChild(renderChild);
+
 			await MarkdownRenderer.render(
 				this.app,
 				fullMarkdownToc,
 				el,
 				ctx.sourcePath,
-				this
+				renderChild
 			);
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new TocSettingTab(this.app, this));
 	}
 
 	onunload() {}
@@ -111,7 +115,7 @@ export default class TableOfContents extends Plugin {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<MyPluginSettings>,
+			(await this.loadData()) as Partial<TocPluginSettings>,
 		);
 	}
 
