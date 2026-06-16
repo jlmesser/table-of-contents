@@ -16,7 +16,7 @@ export default class TableOfContents extends Plugin {
 		await this.loadSettings();
 
 		//todo add stuff to readme about how to use this
-		this.registerMarkdownCodeBlockProcessor("custom-toc", async (source, el, ctx) => {
+		this.registerMarkdownCodeBlockProcessor("custom-toc", async (_source, el, ctx) => {
 
 			const activeFile = this.app.workspace.getActiveFile();
 			if (!activeFile) return;
@@ -33,17 +33,19 @@ export default class TableOfContents extends Plugin {
 			}
 
 			let currentIndent = 0;
-			let headingStack: number[] = [];
-			let tocLines: string[] = [];
+			const headingStack: number[] = [];
+			const tocLines: string[] = [];
 
-			// Helper function to clean markdown formatting characters
+			// Helper function to clean Markdown formatting characters
 			const cleanMarkdown = (text: string): string => {
 				return text
-					.replace(/\*\*|__/g, "")
-					.replace(/\*|_/g, "")
-					.replace(/==/g, "")
-					.replace(/`([^`]+)`/g, "$1")
+					.replace(/\*\*|__/g, "") //bold
+					.replace(/[*_]/g, "") //italic
+					.replace(/==/g, "") //highlight
+					.replace(/`([^`]+)`/g, "$1") //code block
 					.trim();
+				//todo add handling for strikethrough and other Markdown stuff
+				//(there might be a strip formatting helper method somewhere)
 			};
 
 			//todo refactor out - process the headings list
@@ -59,17 +61,22 @@ export default class TableOfContents extends Plugin {
 					headingStack.push(currentLevel);
 					currentIndent = 0;
 				} else {
-					let top = headingStack[headingStack.length - 1];
+					const top = headingStack.at(-1);
+
+					if (top === undefined) {
+						return;
+					}
+
 					//todo fix errors
 					if (currentLevel > top) {
 						headingStack.push(currentLevel);
 						currentIndent++;
 					} else if (currentLevel < top) {
-						while (headingStack.length > 0 && headingStack[headingStack.length - 1] > currentLevel) {
+						while (headingStack.length > 0 && headingStack.at(-1)! > currentLevel) {
 							headingStack.pop();
 							currentIndent = Math.max(0, currentIndent - 1);
 						}
-						if (headingStack.length === 0 || headingStack[headingStack.length - 1] !== currentLevel) {
+						if (headingStack.length === 0 || headingStack.at(-1) !== currentLevel) {
 							headingStack.push(currentLevel);
 						}
 					}
