@@ -1,10 +1,6 @@
 import {
-	Editor,
-	MarkdownView,
-	MarkdownFileInfo,
-	Modal,
-	Notice,
 	Plugin,
+	MarkdownRenderer,
 } from 'obsidian';
 import {
 	DEFAULT_SETTINGS,
@@ -12,78 +8,94 @@ import {
 	SampleSettingTab,
 } from './settings';
 
-// Remember to rename these classes and interfaces!
-
-export default class MyPlugin extends Plugin {
+//todo add tests!!
+export default class TableOfContents extends Plugin {
 	settings!: MyPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon('dice', 'Sample', (_evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
+		//todo add stuff to readme about how to use this
+		this.registerMarkdownCodeBlockProcessor("custom-toc", async (source, el, ctx) => {
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status bar text');
+			const activeFile = this.app.workspace.getActiveFile();
+			if (!activeFile) return;
 
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-modal-simple',
-			name: 'Open modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			},
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'replace-selected',
-			name: 'Replace selected content',
-			editorCallback: (
-				editor: Editor,
-				_ctx: MarkdownView | MarkdownFileInfo,
-			) => {
-				editor.replaceSelection('Sample editor command');
-			},
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-modal-complex',
-			name: 'Open modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
+			const fileCache = this.app.metadataCache.getFileCache(activeFile);
+			const headings = fileCache?.headings || [];
+
+			// Clear the container to prevent duplicate renders
+			el.empty();
+
+			if (headings.length === 0) {
+				el.createEl("p", { text: "No headings found to generate ToC", cls: "toc-empty-msg" });
+				return;
+			}
+
+			let currentIndent = 0;
+			let headingStack: number[] = [];
+			let tocLines: string[] = [];
+
+			// Helper function to clean markdown formatting characters
+			const cleanMarkdown = (text: string): string => {
+				return text
+					.replace(/\*\*|__/g, "")
+					.replace(/\*|_/g, "")
+					.replace(/==/g, "")
+					.replace(/`([^`]+)`/g, "$1")
+					.trim();
+			};
+
+			//todo refactor out - process the headings list
+			headings.forEach(heading => {
+				const currentLevel = heading.level;
+				const rawText = heading.heading.trim();
+
+				// todo maybe remove - buggy - or make configurable and actually fix it
+				if (rawText.toLowerCase() === "table of contents") return;
+
+				// Calculate indent depth
+				if (headingStack.length === 0) {
+					headingStack.push(currentLevel);
+					currentIndent = 0;
+				} else {
+					let top = headingStack[headingStack.length - 1];
+					//todo fix errors
+					if (currentLevel > top) {
+						headingStack.push(currentLevel);
+						currentIndent++;
+					} else if (currentLevel < top) {
+						while (headingStack.length > 0 && headingStack[headingStack.length - 1] > currentLevel) {
+							headingStack.pop();
+							currentIndent = Math.max(0, currentIndent - 1);
+						}
+						if (headingStack.length === 0 || headingStack[headingStack.length - 1] !== currentLevel) {
+							headingStack.push(currentLevel);
+						}
 					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
 				}
-				return false;
-			},
+
+				const indent = "\t".repeat(currentIndent);
+				const cleanText = cleanMarkdown(rawText);
+
+				const openLink = "[[" + activeFile.basename + "#" + heading.heading + "|";
+				const closeLink = "]]";
+
+				tocLines.push(indent + "1. " + openLink + cleanText + closeLink);
+			});
+
+			const fullMarkdownToc = tocLines.join('\n');
+			await MarkdownRenderer.render(
+				this.app,
+				fullMarkdownToc,
+				el,
+				ctx.sourcePath,
+				this
+			);
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(activeDocument, 'click', (_evt: MouseEvent) => {
-			new Notice('Click');
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(
-			window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000),
-		);
 	}
 
 	onunload() {}
@@ -101,14 +113,3 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
-	}
-}
