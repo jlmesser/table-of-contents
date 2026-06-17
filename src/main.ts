@@ -1,18 +1,9 @@
-import {
-	Plugin,
-	MarkdownRenderer,
-	MarkdownRenderChild,
-	stripHeading,
-	stripHeadingForLink,
-} from 'obsidian';
-import {
-	DEFAULT_SETTINGS,
-	TocPluginSettings,
-	TocSettingTab,
-} from './settings';
+import {MarkdownRenderChild, MarkdownRenderer, Plugin,} from 'obsidian';
+import {DEFAULT_SETTINGS, TocPluginSettings, TocSettingTab,} from './settings';
 import {cleanMarkdown, formatLink} from './markdown';
 import {ListType} from "./listType";
-import {resolveSetting} from "./util";
+import {resolveIndent, resolveSetting} from "./util";
+
 
 //todo add tests!!
 export default class TableOfContents extends Plugin {
@@ -76,13 +67,14 @@ export default class TableOfContents extends Plugin {
 					}
 				}
 
+				//todo add config for tab indent vs spaces? tab = 4 spaces
 				const indent = "\t".repeat(currentIndent);
 				const cleanText = cleanMarkdown(rawText);
 
 				let message = formatLink(cleanText, activeFile.basename, heading.heading);
 				let listStyle = resolveSetting(ListType, source, this.settings.listType);
 
-				tocLines.push(indent + listStyle + message);
+				tocLines.push(resolveIndent(source, indent, this.settings.doIndent) + listStyle + message);
 			});
 
 			const fullMarkdownToc = tocLines.join('\n');
@@ -102,7 +94,8 @@ export default class TableOfContents extends Plugin {
 		this.addSettingTab(new TocSettingTab(this.app, this));
 	}
 
-	onunload() {}
+	onunload() {
+	}
 
 	async loadSettings() {
 		this.settings = Object.assign(

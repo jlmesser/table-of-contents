@@ -4,10 +4,12 @@ import {ListType} from "./listType";
 
 export interface TocPluginSettings {
 	listType: string;
+	doIndent: boolean;
 }
 
 export const DEFAULT_SETTINGS: TocPluginSettings = {
 	listType: ListType.numberedList,
+	doIndent: true,
 };
 
 export class TocSettingTab extends PluginSettingTab {
@@ -22,6 +24,16 @@ export class TocSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 
 		containerEl.empty();
+
+		new Setting(containerEl)
+			.setName('Indent nested headings in ToC list')
+			.setDesc('For local settings use doIndent and doNotIndent')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.doIndent)
+				.onChange(async (value) => {
+					this.plugin.settings.doIndent = value;
+					await this.plugin.saveSettings();
+				}));
 
 		new Setting(containerEl)
 			.setName('List Type')

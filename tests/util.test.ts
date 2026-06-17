@@ -1,6 +1,6 @@
 import {describe, it, expect} from '@jest/globals';
 import {ListType} from "../src/listType";
-import {resolveSetting} from "../src/util";
+import {DO_INDENT, DO_NOT_INDENT, resolveIndent, resolveSetting} from "../src/util";
 
 describe("get list type based on global and local settings", () => {
 	it.each([
@@ -14,5 +14,19 @@ describe("get list type based on global and local settings", () => {
 	])("when the input is '%s'", (enumObject, source, globalDefault, expected) => {
 		expect(resolveSetting(enumObject, source, globalDefault)).toBe(expected);
 	});
+
+	let indentString = "\t";
+	it.each([
+		[DO_INDENT, true, indentString],
+		[DO_INDENT, false, indentString],
+		[DO_NOT_INDENT, true, ""],
+		[DO_NOT_INDENT, false, ""],
+		["", true, indentString],
+		["", false, ""],
+
+	])("when the input is '%s'", (source, globalIndent, expected) => {
+		expect(resolveIndent(source, indentString, globalIndent)).toBe(expected);
+	});
+
 });
 
