@@ -1,12 +1,19 @@
 export function cleanMarkdown(text: string): string {
+	console.log("pre-regex text: " + text);
+	//todo refactor regex
 	return text
-		.replace(/[*_~`=]/g, "").trim();
+		//handle internal links: [[file#section|display text]] -> display text
+		// If a '|' exists, capture everything after it. If not, capture the whole string.
+		.replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1")
 
-	//todo handle escaped characters e.g. \*
-	//todo handle brackets eg ()
-	//todo handle external links eg [text](url) - currently link to heading works but is ugly
-	//todo handle internal links or [[ToC bugs]] - link to heading broken, link to other file works but is ugly
+		//handle standard links: [text](url) -> text
+		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
 
-	//(there might be a strip formatting helper method somewhere)
-	//yep there's stripHeading and stripHeadingForLink, not sure if they're worth using though
+		//inline code blocks and formatting
+		.replace(/`(.+)`|\\([*_~`=\[\]])|([*_~`=\[\]])/g, (match, g1, g2) => {
+			if (g1 !== undefined) return g1;
+			if (g2 !== undefined) return g2;
+			return '';
+		})
+		.trim();
 }

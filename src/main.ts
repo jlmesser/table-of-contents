@@ -50,7 +50,7 @@ export default class TableOfContents extends Plugin {
 				console.log("stripHeadingForLink: " + strippedHeadingForLink);
 
 				const currentLevel = heading.level;
-				const rawText = heading.heading.trim();
+				const rawText = heading.heading.trim(); //stripHeading(heading.heading);
 
 				// todo maybe remove - buggy - or make configurable and actually fix it
 				if (rawText.toLowerCase() === "table of contents") return;
@@ -83,8 +83,9 @@ export default class TableOfContents extends Plugin {
 				const indent = "\t".repeat(currentIndent);
 				const cleanText = cleanMarkdown(rawText);
 
-				//todo use obsidian api to create link?
-				const openLink = "[[" + activeFile.basename + "#" + heading.heading + "|";
+				console.log("cleanText: " + cleanText);
+
+				const openLink = "[[" + activeFile.basename + "#" + heading.heading.replace(/^\[{2}|\]{2}$/g, '') + "|";
 				const closeLink = "]]";
 
 				tocLines.push(indent + "1. " + openLink + cleanText + closeLink);
