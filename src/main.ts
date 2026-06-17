@@ -10,7 +10,7 @@ import {
 	TocPluginSettings,
 	TocSettingTab,
 } from './settings';
-import {cleanMarkdown} from './markdown';
+import {cleanMarkdown, formatLink} from './markdown';
 
 //todo add tests!!
 export default class TableOfContents extends Plugin {
@@ -21,6 +21,8 @@ export default class TableOfContents extends Plugin {
 
 		//todo add stuff to readme about how to use this
 		this.registerMarkdownCodeBlockProcessor("custom-toc", async (source, el, ctx) => {
+
+			//todo source is the content of the code block, add config there
 
 			const activeFile = this.app.workspace.getActiveFile();
 			if (!activeFile) return;
@@ -63,6 +65,7 @@ export default class TableOfContents extends Plugin {
 					const top = headingStack.at(-1);
 
 					if (top === undefined) {
+						//todo add warn log here or something
 						return;
 					}
 
@@ -83,12 +86,10 @@ export default class TableOfContents extends Plugin {
 				const indent = "\t".repeat(currentIndent);
 				const cleanText = cleanMarkdown(rawText);
 
-				console.log("cleanText: " + cleanText);
+				let message = formatLink(cleanText, activeFile.basename, heading.heading);
+				console.log("message: " + message);
 
-				const openLink = "[[" + activeFile.basename + "#" + heading.heading.replace(/^\[{2}|\]{2}$/g, '') + "|";
-				const closeLink = "]]";
-
-				tocLines.push(indent + "1. " + openLink + cleanText + closeLink);
+				tocLines.push(indent + "1. " + message);
 			});
 
 			const fullMarkdownToc = tocLines.join('\n');

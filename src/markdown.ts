@@ -17,3 +17,19 @@ export function cleanMarkdown(text: string): string {
 		})
 		.trim();
 }
+
+export function formatLink(cleanText: string, basename: string, heading: string) {
+	console.log("cleanText: " + cleanText);
+	console.log("basename: " + basename);
+	console.log("heading: " + heading);
+
+	return "[[" + basename + "#" + formatHeadingLink(heading, "|" + cleanText) + " ]]";
+}
+
+function formatHeadingLink(heading: string, suffix: string): string {
+	let headingText = heading.replace(/^\[{2}|\]{2}$/g, '');
+	if (headingText.endsWith(suffix)) { //if renamed internal/wiki link fix formatting (e.g. [[file name|othername]])
+		return headingText.replace(/\|/, " ") + "]" + suffix;
+	}
+	return headingText + suffix;
+}
