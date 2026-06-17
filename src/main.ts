@@ -11,7 +11,8 @@ import {
 	TocSettingTab,
 } from './settings';
 import {cleanMarkdown, formatLink} from './markdown';
-import {getListTypeSetting} from "./listType";
+import {ListType} from "./listType";
+import {resolveSetting} from "./util";
 
 //todo add tests!!
 export default class TableOfContents extends Plugin {
@@ -79,7 +80,7 @@ export default class TableOfContents extends Plugin {
 				const cleanText = cleanMarkdown(rawText);
 
 				let message = formatLink(cleanText, activeFile.basename, heading.heading);
-				let listStyle = getListTypeSetting(source, this.settings.listType);
+				let listStyle = resolveSetting(ListType, source, this.settings.listType);
 
 				tocLines.push(indent + listStyle + message);
 			});
