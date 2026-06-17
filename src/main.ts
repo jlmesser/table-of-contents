@@ -2,13 +2,15 @@ import {
 	Plugin,
 	MarkdownRenderer,
 	MarkdownRenderChild,
+	stripHeading,
+	stripHeadingForLink,
 } from 'obsidian';
 import {
 	DEFAULT_SETTINGS,
 	TocPluginSettings,
 	TocSettingTab,
 } from './settings';
-import { cleanMarkdown } from './markdown';
+import {cleanMarkdown} from './markdown';
 
 //todo add tests!!
 export default class TableOfContents extends Plugin {
@@ -30,7 +32,7 @@ export default class TableOfContents extends Plugin {
 			el.empty();
 
 			if (headings.length === 0) {
-				el.createEl("p", { text: "No headings found to generate table of contents", cls: "toc-empty-msg" });
+				el.createEl("p", {text: "No headings found to generate table of contents", cls: "toc-empty-msg"});
 				return;
 			}
 
@@ -40,6 +42,13 @@ export default class TableOfContents extends Plugin {
 
 			//todo refactor out - process the headings list
 			headings.forEach(heading => {
+
+				let strippedHeading = stripHeading(heading.heading);
+				let strippedHeadingForLink = stripHeadingForLink(heading.heading);
+
+				console.log("strippedHeading: " + strippedHeading);
+				console.log("stripHeadingForLink: " + strippedHeadingForLink);
+
 				const currentLevel = heading.level;
 				const rawText = heading.heading.trim();
 
@@ -57,7 +66,6 @@ export default class TableOfContents extends Plugin {
 						return;
 					}
 
-					//todo fix errors
 					if (currentLevel > top) {
 						headingStack.push(currentLevel);
 						currentIndent++;
@@ -75,6 +83,7 @@ export default class TableOfContents extends Plugin {
 				const indent = "\t".repeat(currentIndent);
 				const cleanText = cleanMarkdown(rawText);
 
+				//todo use obsidian api to create link?
 				const openLink = "[[" + activeFile.basename + "#" + heading.heading + "|";
 				const closeLink = "]]";
 
