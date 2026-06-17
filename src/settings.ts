@@ -1,12 +1,13 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import TableOfContents from './main';
+import {ListType} from "./listType";
 
 export interface TocPluginSettings {
-	mySetting: string;
+	listType: string;
 }
 
 export const DEFAULT_SETTINGS: TocPluginSettings = {
-	mySetting: 'default',
+	listType: ListType.numberedList,
 };
 
 export class TocSettingTab extends PluginSettingTab {
@@ -23,16 +24,15 @@ export class TocSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Settings #1')
-			.setDesc("It's a secret")
-			.addText((text) =>
-				text
-					.setPlaceholder('Enter your secret')
-					.setValue(this.plugin.settings.mySetting)
-					.onChange(async (value) => {
-						this.plugin.settings.mySetting = value;
-						await this.plugin.saveSettings();
-					}),
-			);
+			.setName('List Type')
+			.setDesc('Set the default bullet type for all notes')
+			.addDropdown(dropdown => dropdown
+				.addOption(ListType.numberedList, 'numberedList')
+		        .addOption(ListType.bulletedList, 'bulletedList')
+				.setValue(this.plugin.settings.listType)
+				.onChange(async (value) => {
+					this.plugin.settings.listType = value;
+					await this.plugin.saveSettings();
+				}));
 	}
 }

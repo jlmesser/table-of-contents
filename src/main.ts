@@ -11,6 +11,7 @@ import {
 	TocSettingTab,
 } from './settings';
 import {cleanMarkdown, formatLink} from './markdown';
+import {getListTypeSetting} from "./listType";
 
 //todo add tests!!
 export default class TableOfContents extends Plugin {
@@ -21,8 +22,6 @@ export default class TableOfContents extends Plugin {
 
 		//todo add stuff to readme about how to use this
 		this.registerMarkdownCodeBlockProcessor("custom-toc", async (source, el, ctx) => {
-
-			//todo source is the content of the code block, add config there
 
 			const activeFile = this.app.workspace.getActiveFile();
 			if (!activeFile) return;
@@ -44,13 +43,6 @@ export default class TableOfContents extends Plugin {
 
 			//todo refactor out - process the headings list
 			headings.forEach(heading => {
-
-				let strippedHeading = stripHeading(heading.heading);
-				let strippedHeadingForLink = stripHeadingForLink(heading.heading);
-
-				console.log("strippedHeading: " + strippedHeading);
-				console.log("stripHeadingForLink: " + strippedHeadingForLink);
-
 				const currentLevel = heading.level;
 				const rawText = heading.heading.trim(); //stripHeading(heading.heading);
 
@@ -87,9 +79,9 @@ export default class TableOfContents extends Plugin {
 				const cleanText = cleanMarkdown(rawText);
 
 				let message = formatLink(cleanText, activeFile.basename, heading.heading);
-				console.log("message: " + message);
+				let listStyle = getListTypeSetting(source, this.settings.listType);
 
-				tocLines.push(indent + "1. " + message);
+				tocLines.push(indent + listStyle + message);
 			});
 
 			const fullMarkdownToc = tocLines.join('\n');

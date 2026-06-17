@@ -1,5 +1,4 @@
 export function cleanMarkdown(text: string): string {
-	console.log("pre-regex text: " + text);
 	//todo refactor regex
 	return text
 		//handle internal links: [[file#section|display text]] -> display text
@@ -19,10 +18,6 @@ export function cleanMarkdown(text: string): string {
 }
 
 export function formatLink(cleanText: string, basename: string, heading: string) {
-	console.log("cleanText: " + cleanText);
-	console.log("basename: " + basename);
-	console.log("heading: " + heading);
-
 	return "[[" + basename + "#" + formatHeadingLink(heading, "|" + cleanText) + " ]]";
 }
 
