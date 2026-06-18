@@ -29,8 +29,8 @@ export class TocSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Indent nested headings in ToC list')
-			.setDesc('For local settings use doIndent and doNotIndent')
+			.setName('Indent nested headings in list')
+			.setDesc('Default nesting setting for all notes')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.doIndent)
 				.onChange(async (value) => {
@@ -39,11 +39,11 @@ export class TocSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('List Type')
+			.setName('List type')
 			.setDesc('Set the default bullet type for all notes')
 			.addDropdown(dropdown => dropdown
-				.addOption(ListType.numberedList, 'numberedList')
-				.addOption(ListType.bulletedList, 'bulletedList')
+				.addOption(ListType.numberedList, 'Numberedlist')
+				.addOption(ListType.bulletedList, 'Bulletedlist')
 				.setValue(this.plugin.settings.listType)
 				.onChange(async (value) => {
 					this.plugin.settings.listType = value;
@@ -51,13 +51,13 @@ export class TocSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Indent String')
+			.setName('Indent string')
 			.setDesc('Set the default indent string for all notes')
 			.addDropdown(dropdown => dropdown
-				.addOption("\t", 'tab')
-				.addOption(NON_BREAKING_SPACE.repeat(3), '3 spaces')
-				.addOption(NON_BREAKING_SPACE.repeat(2), '2 spaces')
-				.addOption(NON_BREAKING_SPACE, '1 space')
+				.addOption("\t", 'Tab')
+				.addOption(NON_BREAKING_SPACE.repeat(3), '3 Spaces')
+				.addOption(NON_BREAKING_SPACE.repeat(2), '2 Spaces')
+				.addOption(NON_BREAKING_SPACE, '1 Space')
 				.setValue(this.plugin.settings.indentStr)
 				.onChange(async (value) => {
 					this.plugin.settings.indentStr = value;

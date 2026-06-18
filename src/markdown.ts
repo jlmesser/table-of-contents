@@ -3,13 +3,13 @@ export function cleanMarkdown(text: string): string {
 	return text
 		//handle internal links: [[file#section|display text]] -> display text
 		// If a '|' exists, capture everything after it. If not, capture the whole string.
-		.replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1")
+		.replace(/\[\[(?:[^\]|]*\|)?([^\]]*)]]/g, "$1")
 
 		//handle standard links: [text](url) -> text
-		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+		.replace(/\[([^\]]*)]\([^)]*\)/g, "$1")
 
 		//inline code blocks and formatting
-		.replace(/`(.+)`|\\([*_~`=\[\]])|([*_~`=\[\]])/g, (match, g1, g2) => {
+		.replace(/`(.+)`|\\([*_~`=[\]])|([*_~`=[\]])/g, (_match, g1: string, g2: string) => {
 			if (g1 !== undefined) return g1;
 			if (g2 !== undefined) return g2;
 			return '';
@@ -22,8 +22,8 @@ export function formatLink(cleanText: string, basename: string, heading: string)
 }
 
 function formatHeadingLink(heading: string, suffix: string): string {
-	let headingText = heading.replace(/^\[{2}|\]{2}$/g, '');
-	if (headingText.endsWith(suffix)) { //if renamed internal/wiki link fix formatting (e.g. [[file name|othername]])
+	let headingText = heading.replace(/^\[{2}|]{2}$/g, '');
+	if (headingText.endsWith(suffix)) { //if renamed internal/wiki link fix formatting (e.g. [[file name|otherName]])
 		return headingText.replace(/\|/, " ") + "]" + suffix;
 	}
 	return headingText + suffix;
