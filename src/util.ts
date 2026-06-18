@@ -1,3 +1,5 @@
+export const NON_BREAKING_SPACE = '&nbsp;';
+
 export const DO_INDENT = "doIndent";
 export const DO_NOT_INDENT = "doNotIndent";
 
@@ -15,9 +17,15 @@ export function resolveSetting<T extends Record<string, string>>(
 
 }
 
-export function resolveIndent(source: string, indent: string, globalIndent: boolean) {
+export function resolveIndent(source: string, indentStr: string, globalIndentStr: boolean, currentIndent: number) {
+	let localIndentStr = source
+		.replace(/(\t|\\t)/g, "    ")
+		.match(/indent'(\s*)'/)?.["1"];
+	let indent = localIndentStr ? NON_BREAKING_SPACE.repeat(currentIndent * localIndentStr.length)
+		: indentStr.repeat(currentIndent);
+
 	return source.includes(DO_INDENT) ? indent
 		: source.includes(DO_NOT_INDENT) ? ""
-			: globalIndent ? indent
+			: globalIndentStr ? indent
 				: "";
 }

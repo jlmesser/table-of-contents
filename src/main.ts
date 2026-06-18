@@ -67,14 +67,13 @@ export default class TableOfContents extends Plugin {
 					}
 				}
 
-				//todo add config for tab indent vs spaces? tab = 4 spaces
-				const indent = "\t".repeat(currentIndent);
+				const indent = resolveIndent(source, this.settings.indentStr, this.settings.doIndent, currentIndent);
 				const cleanText = cleanMarkdown(rawText);
 
 				let message = formatLink(cleanText, activeFile.basename, heading.heading);
 				let listStyle = resolveSetting(ListType, source, this.settings.listType);
 
-				tocLines.push(resolveIndent(source, indent, this.settings.doIndent) + listStyle + message);
+				tocLines.push(indent + listStyle + message);
 			});
 
 			const fullMarkdownToc = tocLines.join('\n');
