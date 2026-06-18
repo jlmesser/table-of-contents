@@ -1,5 +1,5 @@
 import {describe, it, expect} from '@jest/globals';
-import {cleanMarkdown, formatLink} from '../src/markdown';
+import {cleanMarkdown, createHeadingWikilink} from '../src/markdownFormat';
 
 describe("clean link formatting", () => {
 	it.each([
@@ -42,6 +42,6 @@ describe("clean link display text formatting", () => {
 		['[othername2](ToC%20bugs)', 'othername2', 'ToC test', '[[ToC test#[othername2](ToC%20bugs)|othername2 ]]'],
 
 	])("when the input is '%s'", (heading, cleanText, basename, expected) => {
-		expect(formatLink(cleanText, basename, heading)).toBe(expected);
+		expect(createHeadingWikilink(cleanText, basename, heading)).toBe(expected);
 	});
 });

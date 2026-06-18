@@ -1,7 +1,6 @@
 import {App, PluginSettingTab, Setting} from 'obsidian';
 import TableOfContents from './main';
-import {ListType} from "./listType";
-import {NON_BREAKING_SPACE} from "./util";
+import {NON_BREAKING_SPACE, ListType} from "./util";
 
 export interface TocPluginSettings {
 	listType: string;

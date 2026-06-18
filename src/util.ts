@@ -1,9 +1,13 @@
 export const NON_BREAKING_SPACE = '&nbsp;';
-
 export const DO_INDENT = "doIndent";
 export const DO_NOT_INDENT = "doNotIndent";
 export const DO_REMOVE_TOC = "doRemoveToc";
 export const DO_NOT_REMOVE_TOC = "doNotRemoveToc";
+
+export enum ListType {
+	numberedList = "1. ",
+	bulletedList = "- ",
+}
 
 export function resolveSetting<T extends Record<string, string>>(
 	enumObject: T,

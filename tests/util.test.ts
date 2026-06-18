@@ -1,5 +1,4 @@
 import {describe, it, expect} from '@jest/globals';
-import {ListType} from "../src/listType";
 import {
 	DO_INDENT,
 	DO_NOT_INDENT,
@@ -8,7 +7,8 @@ import {
 	DO_NOT_REMOVE_TOC,
 	resolveIndent,
 	resolveSetting,
-	skipTocHeading
+	skipTocHeading,
+	ListType
 } from "../src/util";
 
 let emptySource = "";
