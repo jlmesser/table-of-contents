@@ -2,7 +2,7 @@ import {MarkdownRenderChild, MarkdownRenderer, Plugin,} from 'obsidian';
 import {DEFAULT_SETTINGS, TocPluginSettings, TocSettingTab,} from './settings';
 import {cleanMarkdown, formatLink} from './markdown';
 import {ListType} from "./listType";
-import {resolveIndent, resolveSetting} from "./util";
+import {skipTocHeading, resolveIndent, resolveSetting} from "./util";
 
 
 //todo add tests!!
@@ -36,10 +36,13 @@ export default class TableOfContents extends Plugin {
 			//todo refactor out - process the headings list
 			headings.forEach(heading => {
 				const currentLevel = heading.level;
-				const rawText = heading.heading.trim(); //stripHeading(heading.heading);
+				const rawText = heading.heading.trim();
 
 				// todo maybe remove - buggy - or make configurable and actually fix it
-				if (rawText.toLowerCase() === "table of contents") return;
+				let doRemoveTocGlobal = this.settings.doRemoveToc;
+				if (skipTocHeading(rawText, source, doRemoveTocGlobal)){
+					return;
+				}
 
 				// Calculate indent depth
 				if (headingStack.length === 0) {

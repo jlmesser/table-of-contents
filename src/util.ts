@@ -2,6 +2,8 @@ export const NON_BREAKING_SPACE = '&nbsp;';
 
 export const DO_INDENT = "doIndent";
 export const DO_NOT_INDENT = "doNotIndent";
+export const DO_REMOVE_TOC = "doRemoveToc";
+export const DO_NOT_REMOVE_TOC = "doNotRemoveToc";
 
 export function resolveSetting<T extends Record<string, string>>(
 	enumObject: T,
@@ -28,4 +30,12 @@ export function resolveIndent(source: string, indentStr: string, globalIndentStr
 		: source.includes(DO_NOT_INDENT) ? ""
 			: globalIndentStr ? indent
 				: "";
+}
+
+export function skipTocHeading(rawHeadingText: string, source: string, doRemoveTocGlobal: boolean) {
+	let isTocStrPresent = rawHeadingText.toLowerCase() === "table of contents";
+	const forcesRemove = source.includes(DO_REMOVE_TOC);
+	const blocksRemove = source.includes(DO_NOT_REMOVE_TOC);
+
+	return isTocStrPresent && (forcesRemove || (!blocksRemove && doRemoveTocGlobal));
 }

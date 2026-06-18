@@ -7,12 +7,14 @@ export interface TocPluginSettings {
 	listType: string;
 	doIndent: boolean;
 	indentStr: string;
+	doRemoveToc: boolean;
 }
 
 export const DEFAULT_SETTINGS: TocPluginSettings = {
 	listType: ListType.numberedList,
 	doIndent: true,
 	indentStr: "\t",
+	doRemoveToc: true,
 };
 
 export class TocSettingTab extends PluginSettingTab {
@@ -35,6 +37,16 @@ export class TocSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.doIndent)
 				.onChange(async (value) => {
 					this.plugin.settings.doIndent = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Remove table of contents heading (if present) from list')
+			.setDesc('Default setting to remove toc heading from toc itself')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.doRemoveToc)
+				.onChange(async (value) => {
+					this.plugin.settings.doRemoveToc = value;
 					await this.plugin.saveSettings();
 				}));
 

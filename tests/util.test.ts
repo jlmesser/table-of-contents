@@ -1,6 +1,15 @@
 import {describe, it, expect} from '@jest/globals';
 import {ListType} from "../src/listType";
-import {DO_INDENT, DO_NOT_INDENT, NON_BREAKING_SPACE, resolveIndent, resolveSetting} from "../src/util";
+import {
+	DO_INDENT,
+	DO_NOT_INDENT,
+	NON_BREAKING_SPACE,
+	DO_REMOVE_TOC,
+	DO_NOT_REMOVE_TOC,
+	resolveIndent,
+	resolveSetting,
+	skipTocHeading
+} from "../src/util";
 
 let emptySource = "";
 describe("get list type based on global and local settings", () => {
@@ -39,6 +48,25 @@ describe("get indent based on global and local settings", () => {
 
 	])("when the input is '%s'", (source, globalIndent, expected) => {
 		expect(resolveIndent(source, defaultIndentString, globalIndent, 1)).toBe(expected);
+	});
+
+});
+
+describe("skip heading \"Table Of Contents\" based on global and local settings", () => {
+	const EMPTY_SOURCE = "";
+	const MATCHING_TOC_HEADING = "Table Of Contents";
+	it.each([
+		[MATCHING_TOC_HEADING, EMPTY_SOURCE, true, true],
+		[MATCHING_TOC_HEADING, EMPTY_SOURCE, false, false],
+		[MATCHING_TOC_HEADING, DO_REMOVE_TOC, true, true],
+		[MATCHING_TOC_HEADING, DO_NOT_REMOVE_TOC, true, false],
+		[MATCHING_TOC_HEADING, DO_REMOVE_TOC, false, true],
+		[MATCHING_TOC_HEADING, DO_NOT_REMOVE_TOC, false, false],
+		[" table of contents  ", EMPTY_SOURCE, true, false],
+		["not match table of contents", EMPTY_SOURCE, true, false],
+
+	])("when the input is '%s'", (rawHeadingText, source, doRemoveTocGlobal, expected) => {
+		expect(skipTocHeading(rawHeadingText, source, doRemoveTocGlobal)).toBe(expected);
 	});
 
 });
