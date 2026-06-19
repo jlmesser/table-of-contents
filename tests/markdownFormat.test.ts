@@ -1,5 +1,8 @@
-import {describe, it, expect} from '@jest/globals';
+// noinspection HtmlUnknownAnchorTarget
+
+import {describe, expect, it} from '@jest/globals';
 import {cleanMarkdown, createHeadingWikilink} from '../src/markdownFormat';
+import {PdfCompatibilityMode} from "../src/util";
 
 describe("clean link formatting", () => {
 	it.each([
@@ -27,21 +30,22 @@ describe("clean link formatting", () => {
 
 describe("clean link display text formatting", () => {
 	it.each([
-		['**Hello**', 'Hello', 'ToC test', '[[#**Hello**|Hello ]]'],
-		['`code`', 'code', 'ToC test', '[[#`code`|code ]]'],
-		['==highlight==', 'highlight', 'ToC test', '[[#==highlight==|highlight ]]'],
-		['***bold and italic***', 'bold and italic', 'ToC test', '[[#***bold and italic***|bold and italic ]]'],
-		['~~strikethrough~~', 'strikethrough', 'ToC test', '[[#~~strikethrough~~|strikethrough ]]'],
-		['`keep chars *_~`=[] in code block`', 'keep chars *_~`=[] in code block', 'ToC test', '[[#`keep chars *_~`=[] in code block`|keep chars *_~`=[] in code block ]]'],
-		['keep escaped chars \\* \\_ \\~ \\` \\= \\[ \\]', 'keep escaped chars * _ ~ ` = [ ]', 'ToC test', '[[#keep escaped chars \\* \\_ \\~ \\` \\= \\[ \\]|keep escaped chars * _ ~ ` = [ ] ]]'],
-		['keep (brackets)', 'keep (brackets)', 'ToC test', '[[#keep (brackets)|keep (brackets) ]]'],
-		['[[display internal link file name]]', 'display internal link file name', 'ToC test', '[[#display internal link file name|display internal link file name ]]'],
-		['[display link text](xyz.com)', 'display link text', 'ToC test', '[[#[display link text](xyz.com)|display link text ]]'],
-		['[[ToC bugs]]', 'ToC bugs', 'ToC test', '[[#ToC bugs|ToC bugs ]]'],
-		['[[ToC bugs|othername1]]', 'othername1', 'ToC test', '<a class="internal-link" href="#ToC bugs|othername1" data-href="#ToC bugs|othername1">othername1</a> OR <a href="#othername1">othername1</a>'], //PDF compatibility issue
-		['[othername2](ToC%20bugs)', 'othername2', 'ToC test', '[[#[othername2](ToC%20bugs)|othername2 ]]'],
+		['**Hello**', 'Hello', PdfCompatibilityMode.BOTH, '[[#**Hello**|Hello ]]'],
+		['`code`', 'code', PdfCompatibilityMode.BOTH, '[[#`code`|code ]]'],
+		['==highlight==', 'highlight', PdfCompatibilityMode.BOTH, '[[#==highlight==|highlight ]]'],
+		['***bold and italic***', 'bold and italic', PdfCompatibilityMode.BOTH, '[[#***bold and italic***|bold and italic ]]'],
+		['~~strikethrough~~', 'strikethrough', PdfCompatibilityMode.BOTH, '[[#~~strikethrough~~|strikethrough ]]'],
+		['`keep chars *_~`=[] in code block`', 'keep chars *_~`=[] in code block', PdfCompatibilityMode.BOTH, '[[#`keep chars *_~`=[] in code block`|keep chars *_~`=[] in code block ]]'],
+		['keep escaped chars \\* \\_ \\~ \\` \\= \\[ \\]', 'keep escaped chars * _ ~ ` = [ ]', PdfCompatibilityMode.BOTH, '[[#keep escaped chars \\* \\_ \\~ \\` \\= \\[ \\]|keep escaped chars * _ ~ ` = [ ] ]]'],
+		['keep (brackets)', 'keep (brackets)', PdfCompatibilityMode.BOTH, '[[#keep (brackets)|keep (brackets) ]]'],
+		['[[display internal link file name]]', 'display internal link file name', PdfCompatibilityMode.BOTH, '[[#display internal link file name|display internal link file name ]]'],
+		['[display link text](xyz.com)', 'display link text', PdfCompatibilityMode.BOTH, '[[#[display link text](xyz.com)|display link text ]]'],
+		['[othername2](ToC%20bugs)', 'othername2', PdfCompatibilityMode.BOTH, '[[#[othername2](ToC%20bugs)|othername2 ]]'],
+		['[[ToC bugs|othername1]]', 'othername1', PdfCompatibilityMode.BOTH, '<a class="internal-link" href="#ToC bugs|othername1" data-href="#ToC bugs|othername1">othername1</a> | <a href="#othername1">othername1</a>'],
+		['[[ToC bugs|othername1]]', 'othername1', PdfCompatibilityMode.OBSIDIAN, '<a class="internal-link" href="#ToC bugs|othername1" data-href="#ToC bugs|othername1">othername1</a>'],
+		['[[ToC bugs|othername1]]', 'othername1', PdfCompatibilityMode.PDF, '<a href="#othername1">othername1</a>'],
 
-	])("when the input is '%s'", (heading, cleanText, basename, expected) => {
-		expect(createHeadingWikilink(cleanText, basename, heading)).toBe(expected);
+	])("when the input is '%s'", (heading, cleanText, settings, expected) => {
+		expect(createHeadingWikilink(cleanText, settings, heading)).toBe(expected);
 	});
 });

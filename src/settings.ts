@@ -1,12 +1,13 @@
 import {App, PluginSettingTab, Setting} from 'obsidian';
 import TableOfContents from './main';
-import {NON_BREAKING_SPACE, ListType} from "./util";
+import {ListType, NON_BREAKING_SPACE, PdfCompatibilityMode} from "./util";
 
 export interface TocPluginSettings {
 	listType: string;
 	doIndent: boolean;
 	indentStr: string;
 	doRemoveToc: boolean;
+	pdfCompatibilityMode: number;
 }
 
 export const DEFAULT_SETTINGS: TocPluginSettings = {
@@ -14,6 +15,7 @@ export const DEFAULT_SETTINGS: TocPluginSettings = {
 	doIndent: true,
 	indentStr: "\t",
 	doRemoveToc: true,
+	pdfCompatibilityMode: 1,
 };
 
 export class TocSettingTab extends PluginSettingTab {
@@ -58,6 +60,19 @@ export class TocSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.listType)
 				.onChange(async (value) => {
 					this.plugin.settings.listType = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('PDF compatibility mode')
+			.setDesc('Set the default PDF compatibility mode for all notes')
+			.addDropdown(dropdown => dropdown
+				.addOption(PdfCompatibilityMode.OBSIDIAN.toString(), 'OBSIDIAN')
+				.addOption(PdfCompatibilityMode.BOTH.toString(), 'BOTH')
+				.addOption(PdfCompatibilityMode.PDF.toString(), 'PDF')
+				.setValue(this.plugin.settings.pdfCompatibilityMode.toString())
+				.onChange(async (value) => {
+					this.plugin.settings.pdfCompatibilityMode = +value;
 					await this.plugin.saveSettings();
 				}));
 

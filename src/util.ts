@@ -9,6 +9,22 @@ export enum ListType {
 	bulletedList = "- ",
 }
 
+export enum PdfCompatibilityMode {
+	OBSIDIAN,
+	BOTH,
+	PDF
+}
+
+export function getPdfSettings(source: string, globalSetting: number) {
+	let match = source.match(/pdfCompatibilityMode:\s(\d)/);
+	if (match && match[1]) {
+		return +match[1];
+	} else {
+
+		return globalSetting;
+	}
+}
+
 export function resolveSetting<T extends Record<string, string>>(
 	enumObject: T,
 	source: string,

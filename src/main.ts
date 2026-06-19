@@ -1,12 +1,7 @@
-import {
-	MarkdownRenderChild,
-	MarkdownRenderer,
-	Plugin,
-	TFile,
-} from 'obsidian';
+import {MarkdownRenderChild, MarkdownRenderer, Plugin,} from 'obsidian';
 import {DEFAULT_SETTINGS, TocPluginSettings, TocSettingTab,} from './settings';
 import {cleanMarkdown, createHeadingWikilink} from './markdownFormat';
-import {resolveIndent, resolveSetting, skipTocHeading, ListType} from "./util";
+import {getPdfSettings, ListType, resolveIndent, resolveSetting, skipTocHeading} from "./util";
 
 export default class TableOfContents extends Plugin {
 	settings!: TocPluginSettings;
@@ -31,7 +26,7 @@ export default class TableOfContents extends Plugin {
 			}
 
 			const tocLines = headings
-				.map(this.mapToTocLine(source, activeFile))
+				.map(this.mapToTocLine(source))
 				.filter((line): line is string => line !== null);
 
 			const renderChild = new MarkdownRenderChild(el);
@@ -49,7 +44,7 @@ export default class TableOfContents extends Plugin {
 		this.addSettingTab(new TocSettingTab(this.app, this));
 	}
 
-	private mapToTocLine(source: string, activeFile: TFile): (heading: {
+	private mapToTocLine(source: string): (heading: {
 		level: number;
 		heading: string;
 	}) => string | null {
@@ -92,7 +87,7 @@ export default class TableOfContents extends Plugin {
 			const indent = resolveIndent(source, this.settings.indentStr, this.settings.doIndent, currentIndent);
 			const cleanText = cleanMarkdown(rawText);
 
-			let message = createHeadingWikilink(cleanText, activeFile.basename, heading.heading);
+			let message = createHeadingWikilink(cleanText, getPdfSettings(source, this.settings.pdfCompatibilityMode), heading.heading);
 			let listStyle = resolveSetting(ListType, source, this.settings.listType);
 
 			return indent + listStyle + message;
