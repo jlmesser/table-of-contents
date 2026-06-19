@@ -15,13 +15,12 @@ export function cleanMarkdown(text: string): string {
 }
 
 export function createHeadingWikilink(cleanText: string, basename: string, heading: string) {
-	return "[[" + basename + "#" + prepareHeadingAnchor(heading, "|" + cleanText) + " ]]";
-}
 
-function prepareHeadingAnchor(heading: string, suffix: string): string {
 	let headingText = heading.replace(/^\[{2}|]{2}$/g, '');
-	if (headingText.endsWith(suffix)) { //if renamed internal/wiki link, fix formatting (e.g. [[file name|otherName]])
-		return headingText.replace(/\|/, " ") + "]" + suffix;
+	if (headingText.endsWith("|" + cleanText)) { //if renamed internal/wiki link, fix formatting (e.g. [[file name|otherName]])
+		let s = headingText.replace(/\|/, "|");
+		//todo maybe add config option for PDF compatibility, including basename?
+		return "<a class=\"internal-link\" href=\"#" + s + "\" data-href=\"#" + s + "\">" + cleanText + "</a> OR <a href=\"#" + cleanText + "\">" + cleanText + "</a>";
 	}
-	return headingText + suffix;
+	return "[[" + "#" + headingText + "|" + cleanText + " ]]";
 }

@@ -1,4 +1,9 @@
-import {MarkdownRenderChild, MarkdownRenderer, Plugin, TFile,} from 'obsidian';
+import {
+	MarkdownRenderChild,
+	MarkdownRenderer,
+	Plugin,
+	TFile,
+} from 'obsidian';
 import {DEFAULT_SETTINGS, TocPluginSettings, TocSettingTab,} from './settings';
 import {cleanMarkdown, createHeadingWikilink} from './markdownFormat';
 import {resolveIndent, resolveSetting, skipTocHeading, ListType} from "./util";

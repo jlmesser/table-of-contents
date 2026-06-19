@@ -27,19 +27,19 @@ describe("clean link formatting", () => {
 
 describe("clean link display text formatting", () => {
 	it.each([
-		['**Hello**', 'Hello', 'ToC test', '[[ToC test#**Hello**|Hello ]]'],
-		['`code`', 'code', 'ToC test', '[[ToC test#`code`|code ]]'],
-		['==highlight==', 'highlight', 'ToC test', '[[ToC test#==highlight==|highlight ]]'],
-		['***bold and italic***', 'bold and italic', 'ToC test', '[[ToC test#***bold and italic***|bold and italic ]]'],
-		['~~strikethrough~~', 'strikethrough', 'ToC test', '[[ToC test#~~strikethrough~~|strikethrough ]]'],
-		['`keep chars *_~`=[] in code block`', 'keep chars *_~`=[] in code block', 'ToC test', '[[ToC test#`keep chars *_~`=[] in code block`|keep chars *_~`=[] in code block ]]'],
-		['keep escaped chars \\* \\_ \\~ \\` \\= \\[ \\]', 'keep escaped chars * _ ~ ` = [ ]', 'ToC test', '[[ToC test#keep escaped chars \\* \\_ \\~ \\` \\= \\[ \\]|keep escaped chars * _ ~ ` = [ ] ]]'],
-		['keep (brackets)', 'keep (brackets)', 'ToC test', '[[ToC test#keep (brackets)|keep (brackets) ]]'],
-		['[[display internal link file name]]', 'display internal link file name', 'ToC test', '[[ToC test#display internal link file name|display internal link file name ]]'],
-		['[display link text](xyz.com)', 'display link text', 'ToC test', '[[ToC test#[display link text](xyz.com)|display link text ]]'],
-		['[[ToC bugs]]', 'ToC bugs', 'ToC test', '[[ToC test#ToC bugs|ToC bugs ]]'],
-		['[[ToC bugs|othername]]', 'othername', 'ToC test', '[[ToC test#ToC bugs othername]|othername ]]'],
-		['[othername2](ToC%20bugs)', 'othername2', 'ToC test', '[[ToC test#[othername2](ToC%20bugs)|othername2 ]]'],
+		['**Hello**', 'Hello', 'ToC test', '[[#**Hello**|Hello ]]'],
+		['`code`', 'code', 'ToC test', '[[#`code`|code ]]'],
+		['==highlight==', 'highlight', 'ToC test', '[[#==highlight==|highlight ]]'],
+		['***bold and italic***', 'bold and italic', 'ToC test', '[[#***bold and italic***|bold and italic ]]'],
+		['~~strikethrough~~', 'strikethrough', 'ToC test', '[[#~~strikethrough~~|strikethrough ]]'],
+		['`keep chars *_~`=[] in code block`', 'keep chars *_~`=[] in code block', 'ToC test', '[[#`keep chars *_~`=[] in code block`|keep chars *_~`=[] in code block ]]'],
+		['keep escaped chars \\* \\_ \\~ \\` \\= \\[ \\]', 'keep escaped chars * _ ~ ` = [ ]', 'ToC test', '[[#keep escaped chars \\* \\_ \\~ \\` \\= \\[ \\]|keep escaped chars * _ ~ ` = [ ] ]]'],
+		['keep (brackets)', 'keep (brackets)', 'ToC test', '[[#keep (brackets)|keep (brackets) ]]'],
+		['[[display internal link file name]]', 'display internal link file name', 'ToC test', '[[#display internal link file name|display internal link file name ]]'],
+		['[display link text](xyz.com)', 'display link text', 'ToC test', '[[#[display link text](xyz.com)|display link text ]]'],
+		['[[ToC bugs]]', 'ToC bugs', 'ToC test', '[[#ToC bugs|ToC bugs ]]'],
+		['[[ToC bugs|othername1]]', 'othername1', 'ToC test', '<a class="internal-link" href="#ToC bugs|othername1" data-href="#ToC bugs|othername1">othername1</a> OR <a href="#othername1">othername1</a>'], //PDF compatibility issue
+		['[othername2](ToC%20bugs)', 'othername2', 'ToC test', '[[#[othername2](ToC%20bugs)|othername2 ]]'],
 
 	])("when the input is '%s'", (heading, cleanText, basename, expected) => {
 		expect(createHeadingWikilink(cleanText, basename, heading)).toBe(expected);
