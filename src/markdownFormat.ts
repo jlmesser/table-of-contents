@@ -1,19 +1,18 @@
 import {PdfCompatibilityMode} from "./util";
 
-export function extracted(rawText: string, stripHeadingForLink    : string, pdfSettings: number, heading: string) {
-	const cleanText = cleanMarkdown(rawText, stripHeadingForLink);
+//todo review all regexes to ensure they're correct and reduce duplication if necessary
 
-	console.log("rawText:" + rawText);
-	console.log("cleanText:" + cleanText);
+export function cleanMarkdown(stripHeadingForLink: string, pdfSettings: number, heading: string) {
+	let text = replaceOuterLinks(heading.trim());
+	let cleanText = hasInnerLinks(text) ? stripHeadingForLink : replaceEscapeCodeBlocks(text);
 
-	let message = createHeadingWikilink(cleanText, pdfSettings, heading);
-	return {cleanText, message};
+	return createHeadingWikilink(cleanText, pdfSettings, heading);
 }
 
 function replaceOuterLinks(text: string) {
 	const WIKILINK_REGEX = /^\[\[.+\|(.+)]]$/; //[[file#section|display text]] -> display text
-	const MARKDOWN_LINK_REGEX = /^\[([^\[\]()]+)]\([^\[\]()]+\)$/; //[text](url) -> text
-	const BLOCK_LINK_REGEX = /(\[\[)#\^([A-Za-z0-9\-]+]])/;
+	const MARKDOWN_LINK_REGEX = /^\[([^[\]()]+)]\([^[\]()]+\)$/; //[text](url) -> text
+	const BLOCK_LINK_REGEX = /(\[\[)#\^([A-Za-z0-9-]+]])/;
 
 	return text
 		.replace(BLOCK_LINK_REGEX, "$1$2")
@@ -22,7 +21,7 @@ function replaceOuterLinks(text: string) {
 }
 
 function hasInnerLinks(text: string) {
-	const innerMarkdownLinkRegex = /\[([^\[\]()]+)]\([^\[\]()]+\)/;
+	const innerMarkdownLinkRegex = /\[([^[\]()]+)]\([^[\]()]+\)/;
 	const innerWikiLinkRegex = /\[\[([^|\]]+)\|([^\]]+)]]/g;
 	return innerMarkdownLinkRegex.test(text) || innerWikiLinkRegex.test(text);
 }
@@ -38,53 +37,50 @@ function replaceEscapeCodeBlocks(text: string) {
 		}).trim();
 }
 
-export function cleanMarkdown(text: string, stripHeadingForLink: string): string {
-	text = replaceOuterLinks(text);
-
-	if (hasInnerLinks(text)) {
-		return stripHeadingForLink;
-	}
-
-	return replaceEscapeCodeBlocks(text);
-}
-
-
-export function createHeadingWikilink(cleanText: string, pdfSetting: number, heading: string) {
-	//todo handle headings that have multiple links/are a mix of cases etc
-	console.log("heading:cleantext" + heading + ":" + cleanText)
+function createHeadingWikilink(cleanText: string, pdfSetting: number, heading: string) {
+	const OPEN_LINK = "[[#";
+	const CLOSE_LINK = " ]]";
+	const LINK_RENAME = "|";
 
 	if (cleanText == heading) {
-		return "[[#" + heading + " ]]";
+		return OPEN_LINK + heading + CLOSE_LINK;
 	}
 
-	let headingText = heading.replace(/^\[{2}|]{2}$/g, '');
+	const headingText = heading.replace(/^\[{2}|]{2}$/g, '');
 
-	const strings: string[] = cleanText.split(' ');
-	const last = strings.pop();
-	console.log("last " + last)
-	if (last && headingText.includes("\^" + last)) {
-		return "[[#" + cleanText + " ]]";
-	}
-	if (headingText.endsWith("|" + cleanText)) { //if renamed internal/wiki link, fix formatting (e.g. # [[file name|otherName]])
-		let s = headingText.replace(/\|/, "|");
-		let obsidianLink = "<a class=\"internal-link\" href=\"#" + s + "\" data-href=\"#" + s + "\">" + cleanText + "</a>";
-		let pdfLink = "<a href=\"#" + cleanText + "\">" + cleanText + "</a>";
-		switch (pdfSetting) {
-			case PdfCompatibilityMode.OBSIDIAN.valueOf():
-				return obsidianLink;
-			case PdfCompatibilityMode.PDF.valueOf():
-				return pdfLink;
-			case PdfCompatibilityMode.BOTH.valueOf():
-			default:
-				return obsidianLink + " | " + pdfLink;
-		}
+	if (isBlockLink(cleanText, headingText)) {
+		return `${OPEN_LINK}${cleanText}${CLOSE_LINK}`;
 	}
 
-	if (heading.match(/^[^\d\w].*$/)) {
-		return "[[#" + headingText + "|" + cleanText + " ]]";
+	const isRenamedWikilink = headingText.endsWith(LINK_RENAME + cleanText);
+	if (isRenamedWikilink) {
+		return getHtmlLink(headingText, cleanText, pdfSetting);
+	}
+
+	const doLinkRename = heading.match(/^[^\d\w].*$/);
+	if (doLinkRename) {
+		return `${OPEN_LINK}${headingText}${LINK_RENAME}${cleanText}${CLOSE_LINK}`;
 	} else {
-		return "[[#" + cleanText + " ]]";
+		return `${OPEN_LINK}${cleanText}${CLOSE_LINK}`;
 	}
 
+}
 
+function isBlockLink(cleanText: string, headingText: string) {
+	const lastWord = cleanText.trim().split(/\s+/).pop() || '';
+	return headingText.includes(`^${lastWord}`);
+}
+
+function getHtmlLink(headingText: string, cleanText: string, pdfSetting: number) {
+	let obsidianLink = "<a class=\"internal-link\" href=\"#" + headingText + "\" data-href=\"#" + headingText + "\">" + cleanText + "</a>";
+	let pdfLink = "<a href=\"#" + cleanText + "\">" + cleanText + "</a>";
+	switch (pdfSetting) {
+		case PdfCompatibilityMode.OBSIDIAN.valueOf():
+			return obsidianLink;
+		case PdfCompatibilityMode.PDF.valueOf():
+			return pdfLink;
+		case PdfCompatibilityMode.BOTH.valueOf():
+		default:
+			return obsidianLink + " | " + pdfLink;
+	}
 }

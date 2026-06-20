@@ -1,14 +1,16 @@
-import {describe, it, expect} from '@jest/globals';
+import {describe, expect, it} from '@jest/globals';
 import {
 	DO_INDENT,
 	DO_NOT_INDENT,
-	NON_BREAKING_SPACE,
-	DO_REMOVE_TOC,
 	DO_NOT_REMOVE_TOC,
+	DO_REMOVE_TOC,
+	getPdfSettings,
+	ListType,
+	NON_BREAKING_SPACE,
+	PdfCompatibilityMode,
 	resolveIndent,
 	resolveSetting,
-	skipTocHeading,
-	ListType
+	skipTocHeading
 } from "../src/util";
 
 let emptySource = "";
@@ -69,5 +71,26 @@ describe("skip heading \"Table Of Contents\" based on global and local settings"
 		expect(skipTocHeading(rawHeadingText, source, doRemoveTocGlobal)).toBe(expected);
 	});
 
+});
+
+
+describe("skip heading \"Table Of Contents\" based on global and local settings", () => {
+	const EMPTY_SOURCE = "";
+	it.each([
+		[EMPTY_SOURCE, PdfCompatibilityMode.OBSIDIAN, PdfCompatibilityMode.OBSIDIAN],
+		[EMPTY_SOURCE, PdfCompatibilityMode.BOTH, PdfCompatibilityMode.BOTH],
+		[EMPTY_SOURCE, PdfCompatibilityMode.PDF, PdfCompatibilityMode.PDF],
+		["pdfCompatibilityMode: 0", PdfCompatibilityMode.OBSIDIAN, PdfCompatibilityMode.OBSIDIAN],
+		["pdfCompatibilityMode: 0", PdfCompatibilityMode.BOTH, PdfCompatibilityMode.OBSIDIAN],
+		["pdfCompatibilityMode: 0", PdfCompatibilityMode.PDF, PdfCompatibilityMode.OBSIDIAN],
+		["pdfCompatibilityMode: 1", PdfCompatibilityMode.OBSIDIAN, PdfCompatibilityMode.BOTH],
+		["pdfCompatibilityMode: 1", PdfCompatibilityMode.BOTH, PdfCompatibilityMode.BOTH],
+		["pdfCompatibilityMode: 1", PdfCompatibilityMode.PDF, PdfCompatibilityMode.BOTH],
+		["pdfCompatibilityMode: 2", PdfCompatibilityMode.OBSIDIAN, PdfCompatibilityMode.PDF],
+		["pdfCompatibilityMode: 2", PdfCompatibilityMode.BOTH, PdfCompatibilityMode.PDF],
+		["pdfCompatibilityMode: 2", PdfCompatibilityMode.PDF, PdfCompatibilityMode.PDF],
+	])("when the input is '%s'", (source, pdfSetting, expected) => {
+		expect(getPdfSettings(source, pdfSetting)).toBe(expected);
+	});
 });
 

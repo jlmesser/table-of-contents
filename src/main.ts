@@ -1,6 +1,6 @@
-import {MarkdownRenderChild, MarkdownRenderer, Plugin, stripHeading, stripHeadingForLink} from 'obsidian';
+import {MarkdownRenderChild, MarkdownRenderer, Plugin, stripHeading} from 'obsidian';
 import {DEFAULT_SETTINGS, TocPluginSettings, TocSettingTab,} from './settings';
-import {extracted} from './markdownFormat';
+import {cleanMarkdown} from './markdownFormat';
 import {getPdfSettings, ListType, resolveIndent, resolveSetting, skipTocHeading} from "./util";
 
 export default class TableOfContents extends Plugin {
@@ -32,7 +32,6 @@ export default class TableOfContents extends Plugin {
 			ctx.addChild(renderChild);
 
 			let markdown = tocLines.join('\n');
-			console.log("markdown:" + markdown)
 			await MarkdownRenderer.render(
 				this.app,
 				markdown,
@@ -85,19 +84,10 @@ export default class TableOfContents extends Plugin {
 				}
 			}
 
-			const indent = resolveIndent(source, this.settings.indentStr, this.settings.doIndent, currentIndent);
-
-			const s1 = stripHeadingForLink(rawText);
-			console.log("stripHeadingForLink:"+ s1);
-			const s = stripHeading(rawText);
-			console.log("stripHeading:"+ s);
 			const pdfSettings = getPdfSettings(source, this.settings.pdfCompatibilityMode);
-			let {cleanText, message} = extracted.call(this, rawText, s, pdfSettings, heading.heading);
-
-			console.log("clean=stripped:"+ (cleanText == s && cleanText == s1));
-			let listStyle = resolveSetting(ListType, source, this.settings.listType);
-
-			return indent + listStyle + message;
+			return resolveIndent(source, this.settings.indentStr, this.settings.doIndent, currentIndent)
+				+ resolveSetting(ListType, source, this.settings.listType)
+				+ cleanMarkdown(stripHeading(rawText), pdfSettings, heading.heading);
 		};
 	}
 

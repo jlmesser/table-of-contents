@@ -54,8 +54,8 @@ export function resolveIndent(source: string, indentStr: string, globalIndentStr
 
 export function skipTocHeading(rawHeadingText: string, source: string, doRemoveTocGlobal: boolean) {
 	let isTocStrPresent = rawHeadingText.toLowerCase() === "table of contents";
-	const forcesRemove = source.includes(DO_REMOVE_TOC);
-	const blocksRemove = source.includes(DO_NOT_REMOVE_TOC);
+	const forceRemove = source.includes(DO_REMOVE_TOC);
+	const blockRemove = source.includes(DO_NOT_REMOVE_TOC);
 
-	return isTocStrPresent && (forcesRemove || (!blocksRemove && doRemoveTocGlobal));
+	return isTocStrPresent && (forceRemove || (!blockRemove && doRemoveTocGlobal));
 }
