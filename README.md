@@ -21,27 +21,27 @@ You can fine-tune how the ToC behaves on a per-note basis by adding inline confi
 ## Configuration Settings
 You can configure the global defaults for all your notes via the plugin settings tab.
 
-| Setting Name | Description | Default Value | Options |
-|---|---|---|---|
-| Indent nested headings | Enable or disable sub-heading indentation across your notes. | true (Enabled) | Toggle On/Off |
-| Remove table of contents heading | Automatically filter out any heading titled exactly "Table Of Contents" so it doesn't self-reference. | true (Enabled) | Toggle On/Off |
-| List type | Set the default marker style for your list items. | numberedList | Numbered list, Bulleted list |
-| Indent string | Choose the character template used to step out nested levels. | Tab (\t) | Tab, 3 Spaces, 2 Spaces, 1 Space |
+| Setting Name                     | Description                                                                                           | Default Value  | Options                          |
+|----------------------------------|-------------------------------------------------------------------------------------------------------|----------------|----------------------------------|
+| Indent nested headings           | Enable or disable sub-heading indentation across your notes.                                          | true (Enabled) | Toggle On/Off                    |
+| Remove table of contents heading | Automatically filter out any heading titled exactly "Table Of Contents" so it doesn't self-reference. | true (Enabled) | Toggle On/Off                    |
+| List type                        | Set the default marker style for your list items.                                                     | numberedList   | Numbered list, Bulleted list     |
+| Indent string                    | Choose the character template used to step out nested levels.                                         | Tab (\t)       | Tab, 3 Spaces, 2 Spaces, 1 Space |
 
 ------------------------------
 ## Local/Per-Note Configuration
 You can override your global settings on a per-note basis by adding specific configuration flags directly into your note's source text. The plugin scans the text inside the code block for these keywords to dynamically adjust how the Table of Contents generates for that specific file.
 ## Local Override Options
 
-| Action                           | Keyword / Format | Description                                                                                                                                                                   |
-|----------------------------------|---|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Force Indentation                | doIndent | Forces sub-headings to indent, ignoring a global "off" setting.                                                                                                               |
-| Disable Indentation              | doNotIndent | Flattens your list entirely.                                                                                                                                                  |
-| Custom Indent Spacing            | indent'[spaces/tabs]' | Enforces a specific spacing style (e.g., indent'  ' for two spaces).                                                                                                          |
-| Force List Type                  | numberedList or bulletedList | Manually switches the list style for this note.                                                                                                                               |
-| Hide ToC Heading                 | doRemoveToc | Ensures a heading named "Table Of Contents" is hidden.                                                                                                                        |
-| Show ToC Heading                 | doNotRemoveToc | Forces the ToC heading to appear in the list.                                                                                                                                 |
-| PDF or Obsidian compatible links | pdfCompatibilityMode: 1 | some headings with links like [[othernote\|name]] can only be rrendered either in an obsidian friendly way or a PDF friendly way. pick a mode that displays one or both |
+| Action                           | Keyword / Format             | Description                                                                                                                                                             |
+|----------------------------------|------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Force Indentation                | doIndent                     | Forces sub-headings to indent, ignoring a global "off" setting.                                                                                                         |
+| Disable Indentation              | doNotIndent                  | Flattens your list entirely.                                                                                                                                            |
+| Custom Indent Spacing            | indent'[spaces/tabs]'        | Enforces a specific spacing style (e.g., indent'  ' for two spaces).                                                                                                    |
+| Force List Type                  | numberedList or bulletedList | Manually switches the list style for this note.                                                                                                                         |
+| Hide ToC Heading                 | doRemoveToc                  | Ensures a heading named "Table Of Contents" is hidden.                                                                                                                  |
+| Show ToC Heading                 | doNotRemoveToc               | Forces the ToC heading to appear in the list.                                                                                                                           |
+| PDF or Obsidian compatible links | pdfCompatibilityMode: 1      | some headings with links like [[othernote\|name]] can only be rrendered either in an obsidian friendly way or a PDF friendly way. pick a mode that displays one or both |
 
 ## Examples
 

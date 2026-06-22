@@ -29,6 +29,7 @@ export default tseslint.config(
 						'eslint.config.mts',
 						'manifest.json',
 						'tests/*.ts',
+						'coverage/*/*.js',
 					],
 				},
 				tsconfigRootDir: import.meta.dirname,

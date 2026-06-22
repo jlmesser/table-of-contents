@@ -1,36 +1,51 @@
 import {PdfCompatibilityMode} from "./util";
 
-//todo review all regexes to ensure they're correct and reduce duplication if necessary
-const INNER_REFERENCE_LINK_REGEX = /\[(.*)]\[(.*)]/g;
-const BLOCK_LINK_REGEX = /(\[\[)#\^([A-Za-z0-9-]+]])/; //[[#^2395bd]]
+//todo add support for headings with same name but unique path e.g. [[#thing#summary]] [[#other thing#summary]]
 
+//Inner matchers are greedy and are for things like "# some heading [[link]] more text"
+const INNER_REFERENCE_LINK_REGEX = /\[([^[\]]*)]\[([^[\]]*)]/g; //[like][this]
+const INNER_BLOCK_LINK_REGEX = /(\[\[)#\^([A-Za-z0-9-]+]])|(\[\[)#\^([A-Za-z0-9-]+(\|[A-Za-z0-9-]+]]))/g; //[[#^2395bd]]
+const INNER_MARKDOWN_LINK_REGEX = /\[([^[\]()]+)]\([^[\]()]+\)/g; //[text](url)
+const INNER_WIKILINK_REGEX = /\[\[([^|\]]+)\|([^\]]+)]]/g; //[[file#section|display text]]
+
+//Outer matchers are not greedy, just for the headings which are entirely one link e.g. "# [[note]]"
+const OUTER_WIKILINK_REGEX = /^\[\[.+\|(.+)]]$/; //[[file#section|display text]] -> display text
+const OUTER_MARKDOWN_LINK_REGEX = /^\[([^[\]()]+)]\([^[\]()]+\)$/; //[text](url) -> text
+const OUTER_REFERENCE_LINK_REGEX = /^\[(.*)]\[(.*)]$/; //[like][this] -> like
+const BLOCK_LINK_START_REGEX = /^(\[\[#)\^([A-Za-z0-9-]+\|[A-Za-z0-9-]+]])$/;
+
+//Renamed matchers are for links like "# [[note title|different link text]]"
+const RENAME_BLOCK_WIKI_LINK_REGEX = /\[\[([^|\]]+)\|([^\]]+)]][^^]/g; // [[file|renamed]] or [[#^tag|newname]], not #heading ^tag
+const RENAME_BLOCK_LINKS_REGEX = /(\[\[#\^)([^[\]]*\|)([^[\]]*)(]])/g;
+const RENAME_CLEAN_TEXT_REGEX = /(([^|[\]\s]*)\|([^|[\]\s]*))/g;
+
+const FIRST_CHAR_SPECIAL_REGEX = /^[^a-zA-Z0-9]/;
+const LINK_TAG_REGEX = /(#\^)/g;
+const BRACKETS_REGEX = /\[{2}|]{2}/g;
+
+const OPEN_LINK = "[[#";
+const CLOSE_LINK = " ]]";
+const LINK_RENAME = "|";
 
 export function cleanMarkdown(stripHeadingForLink: string, pdfSettings: number, heading: string) {
 	const text = replaceOuterLinks(heading.trim());
 	const cleanText = hasInnerLinks(text) ? stripHeadingForLink : replaceEscapeCodeBlocks(text);
-
-	const s = createHeadingWikilink(cleanText, pdfSettings, heading);
-	console.log("cleaned link: " + s);
-	return s;
+	return createHeadingLinks(cleanText, pdfSettings, heading);
 }
 
 function replaceOuterLinks(text: string) {
-	//todo make BLOCK_LINK_REGEX actually check for existing block links in cache instead of regex?
-
-	const WIKILINK_REGEX = /^\[\[.+\|(.+)]]$/; //[[file#section|display text]] -> display text
-	const MARKDOWN_LINK_REGEX = /^\[([^[\]()]+)]\([^[\]()]+\)$/; //[text](url) -> text
-	const REFERENCE_LINK_REGEX = /^\[(.*)]\[(.*)]$/; //[like][this]
 	return text
-		.replace(BLOCK_LINK_REGEX, "$1 $2")
-		.replace(WIKILINK_REGEX, "$1")
-		.replace(MARKDOWN_LINK_REGEX, "$1")
-		.replace(REFERENCE_LINK_REGEX, "$1 $2");
+		.replace(INNER_BLOCK_LINK_REGEX, "$1$2$3$4")
+		.replace(OUTER_WIKILINK_REGEX, "$1")
+		.replace(OUTER_MARKDOWN_LINK_REGEX, "$1")
+		.replace(INNER_MARKDOWN_LINK_REGEX, "$1")
+		.replace(RENAME_BLOCK_WIKI_LINK_REGEX, "$2")
+		.replace(OUTER_REFERENCE_LINK_REGEX, "$1")
+		.replace(INNER_REFERENCE_LINK_REGEX, "$1");
 }
 
 function hasInnerLinks(text: string) {
-	const INNER_LINK_REGEX = /\[([^[\]()]+)]\([^[\]()]+\)/g;
-	const INNER_WIKILINK_REGEX = /\[\[([^|\]]+)\|([^\]]+)]]/g;
-	return INNER_LINK_REGEX.test(text) || INNER_WIKILINK_REGEX.test(text) || INNER_REFERENCE_LINK_REGEX.test(text);
+	return INNER_MARKDOWN_LINK_REGEX.test(text) || INNER_REFERENCE_LINK_REGEX.test(text) || INNER_WIKILINK_REGEX.test(text);
 }
 
 function replaceEscapeCodeBlocks(text: string) {
@@ -38,81 +53,85 @@ function replaceEscapeCodeBlocks(text: string) {
 	return text
 		.replace(ESCAPE_AND_CODE_REGEX, (_match, codeBlockContent: string, escapedChar: string) => {
 			if (codeBlockContent !== undefined) return codeBlockContent; //don't modify content inside `code blocks`
-			if (escapedChar !== undefined) return escapedChar; //keep escaped char, remove backslash
+			if (escapedChar !== undefined) return escapedChar; //keep escaped char, remove backslash e.g., \* -> *
 			return ""; //else, strip out
 		}).trim();
 }
 
-function createHeadingWikilink(cleanText: string, pdfSetting: number, heading: string) {
-	const OPEN_LINK = "[[#";
-	const CLOSE_LINK = " ]]";
-	const LINK_RENAME = "|";
-
-	console.log("cleanText " + cleanText);
-	console.log("heading " + heading);
-
-	if (cleanText == heading) {
-		return OPEN_LINK + heading + CLOSE_LINK;
-	}
-
-	const SQUARE_BRACKETS_REGEX = /^\[{2}|]{2}$/g;
-	const headingText = heading.replace(SQUARE_BRACKETS_REGEX, '');
-
-	console.log("headingText " + headingText);
-
-	let htmlLink = "";
-
-	const lastWord = cleanText.trim().split(/\s+/).pop() || '';
-	if (headingText.includes(`^${lastWord}`) ) {
-
-		const internalBlockLinkedTitleName = /(?:.*\|\^?(.*)\]{2}\^.*)|(?:^#\^(.*$))/;
-		const s = headingText.replace(internalBlockLinkedTitleName, "$1$2");
-
-		console.log("headingText " + s);
-
-		return getHtmlLink(s, s, BLOCK_LINK_REGEX.test(heading) ? 0 : pdfSetting, `${OPEN_LINK}${cleanText}${LINK_RENAME}${s}${CLOSE_LINK}`);
-		// return getHtmlLink(headingText, cleanText, pdfSetting) + " | " + getHtmlLink( "#^" + lastWord, cleanText, pdfSetting) + " | " + `${OPEN_LINK}${cleanText}${CLOSE_LINK}`;
-
-		// const ct2 = cleanText.replace(" " + lastWord, "");
-		// const lw2 = "#^" + lastWord;
-		// return
-		// getHtmlLink( lw2, ct2, pdfSetting)
-		// 	+ " | " + `${OPEN_LINK}${cleanText}${CLOSE_LINK}`
-		// 	+ " | " + `${OPEN_LINK}${headingText}${LINK_RENAME}${cleanText}${CLOSE_LINK}`
-		// 	+ " | " + `${OPEN_LINK}${lw2}${LINK_RENAME}${ct2}${CLOSE_LINK}` ;
-	}
-
-
-	const isRenamedWikilink = headingText.includes(LINK_RENAME + cleanText);
-	const useObsidianHtml = headingText.includes(`\^`) || heading.includes("][");
-	if (isRenamedWikilink || INNER_REFERENCE_LINK_REGEX.test(headingText) || useObsidianHtml ) {
-		console.log("isRenamedWikilink");
-		return getHtmlLink(headingText, cleanText, useObsidianHtml ? 0 : pdfSetting); // both HTML work in PDF for [^1], 1 HTML obsidian none PDF for [^2395bd]
-	}
-
-	const FIRST_CHAR_SPECIAL_REGEX = /^[^a-zA-Z0-9].*$/;
-	if (heading.match(FIRST_CHAR_SPECIAL_REGEX)) {
-		console.log("isFIRST_CHAR_SPECIAL_REGEX");
-		return `${OPEN_LINK}${headingText}${LINK_RENAME}${cleanText}${CLOSE_LINK}`;// + " | " + htmlLink; //this for [^1]
-	} else {
-		console.log("else");
-		return `${OPEN_LINK}${cleanText}${CLOSE_LINK}`;// + " | " + htmlLink; //this for [[#^2395bd]] block link
-	}
-
+//remove leading and trailing square brackets [[like this]] -> like this
+function stripSquare(heading: string) {
+	return heading.replace(/^\[{2}|]{2}$/g, '');
 }
 
-function isBlockLink(cleanText: string, headingText: string) {
-	const lastWord = cleanText.trim().split(/\s+/).pop() || '';
+function formatHeadingBlockTags(headingText: string) {
+	const BLOCK_LINK_NAME_REGEX = /.*\|\^?(.*)]{2}\^.*|^#\^(.*$)/; //handles #heading ^tag and [[#^2395bd]]
+	return headingText.trim().replace(BLOCK_LINK_NAME_REGEX, "$1$2");
+}
+
+function createHeadingLinks(cleanText: string, pdfSetting: number, heading: string): string {
+	if (cleanText === heading) {
+		return `${OPEN_LINK}${heading}${CLOSE_LINK}`;
+	}
+
+	let headingText = stripSquare(heading);
+
+	if (isBlockLink(cleanText, headingText)) {
+		const blockTag = formatHeadingBlockTags(headingText);
+		const forceObsidian = INNER_BLOCK_LINK_REGEX.test(heading) ? 0 : pdfSetting;
+		const fallbackText = `${OPEN_LINK}${cleanText}${LINK_RENAME}${blockTag}${CLOSE_LINK}`;
+		return getHtmlLink(blockTag, forceObsidian, fallbackText, true);
+	}
+
+	if (BLOCK_LINK_START_REGEX.test(heading)) {
+		headingText = headingText.replace(BLOCK_LINK_START_REGEX, "$1$2");
+		return getHtmlLink(cleanText, pdfSetting, formatInternalBlockLink(headingText));
+	}
+
+	if (INNER_BLOCK_LINK_REGEX.test(heading)) {
+		headingText = headingText.replace(RENAME_BLOCK_LINKS_REGEX, "$1$3$4");
+		const formattedLink = formatInternalBlockLink(headingText);
+		const resolvedText = formattedLink.replace(RENAME_CLEAN_TEXT_REGEX, "$3");
+		return getHtmlLink(resolvedText, pdfSetting, formattedLink);
+	}
+
+	const isRenamedWikilink = headingText.includes(LINK_RENAME + cleanText);
+	const useObsidianHtml = heading.includes("][")
+		|| (RENAME_BLOCK_WIKI_LINK_REGEX.test(heading) && !INNER_MARKDOWN_LINK_REGEX.test(heading))
+		|| /(?<!#)\^/.test(headingText);
+
+	if (isRenamedWikilink || INNER_REFERENCE_LINK_REGEX.test(headingText) || useObsidianHtml || headingText.includes('#^')) {
+		const targetPdfSetting = useObsidianHtml ? PdfCompatibilityMode.OBSIDIAN.valueOf() : pdfSetting;
+		return getHtmlLink(cleanText, targetPdfSetting, formatInternalBlockLink(headingText));
+	}
+
+	if (FIRST_CHAR_SPECIAL_REGEX.test(heading) || INNER_MARKDOWN_LINK_REGEX.test(heading)) {
+		return `${OPEN_LINK}${headingText}${LINK_RENAME}${cleanText}${CLOSE_LINK}`;
+	}
+
+	return `${OPEN_LINK}${cleanText}${CLOSE_LINK}`;
+}
+
+
+function formatInternalBlockLink(headingText: string): string {
+	return headingText.includes('#^')
+		? headingText.replace(LINK_TAG_REGEX, '').replace(BRACKETS_REGEX, '')
+		: headingText;
+}
+
+function isBlockLink(cleanText: string, headingText: string): boolean {
+	const tokens = cleanText.trim().split(/\s+/);
+	const lastWord = tokens[tokens.length - 1] || '';
 	return headingText.includes(`^${lastWord}`);
 }
 
-function getHtmlLink(headingText: string, cleanText: string, pdfSetting: number, obsidianOverride?: string) {
-	const obsidianHtml = `<a class="internal-link" href="#${headingText}" data-href="#${headingText}">${cleanText}</a>`;
-	// const decodedText = decodeURIComponent(headingText); //breaks remove caret
-	// console.log("cleanText " + cleanText);
-	// console.log("headingText " + headingText);
-	const pdfLink = `<a href="#${cleanText}">${cleanText}</a>`;
-	const obsidianLink = obsidianOverride ? obsidianOverride : obsidianHtml;
+function getHtmlLink(cleanText: string, pdfSetting: number, headingText: string, override: boolean = false) {
+	let heading = headingText.startsWith("#") ? headingText : `#${headingText}`;
+	let cleaned = headingText.startsWith("#") ? cleanText : `#${cleanText}`;
+
+	const obsidianHtml = `<a class="internal-link" href="${heading}" data-href="${heading}">${cleanText}</a>`;
+	const pdfLink = `<a href="${cleaned}">${cleanText}</a>`;
+	const obsidianLink = override ? headingText : obsidianHtml;
+
 	switch (pdfSetting) {
 		case PdfCompatibilityMode.OBSIDIAN.valueOf():
 			return obsidianLink;
