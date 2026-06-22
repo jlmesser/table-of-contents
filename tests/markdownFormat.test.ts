@@ -6,6 +6,8 @@ import {PdfCompatibilityMode} from "../src/util";
 
 //todo test long headings?
 //todo test other characters (special, emojis, look for charsets to test with)
+//todo test stuff in main
+//todo test if the html stuff plays nice with the indent settings etc
 
 describe("clean link display text", () => {
 	it.each`

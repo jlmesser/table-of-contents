@@ -74,7 +74,7 @@ describe("skip heading \"Table Of Contents\" based on global and local settings"
 });
 
 
-describe("skip heading \"Table Of Contents\" based on global and local settings", () => {
+describe("format links to work in obsidian, PDF or both based on global and local settings", () => {
 	const EMPTY_SOURCE = "";
 	it.each([
 		[EMPTY_SOURCE, PdfCompatibilityMode.OBSIDIAN, PdfCompatibilityMode.OBSIDIAN],
