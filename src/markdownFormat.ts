@@ -12,12 +12,12 @@ const INNER_WIKILINK_REGEX = /\[\[([^|\]]+)\|([^\]]+)]]/g; //[[file#section|disp
 const OUTER_WIKILINK_REGEX = /^\[\[.+\|(.+)]]$/; //[[file#section|display text]] -> display text
 const OUTER_MARKDOWN_LINK_REGEX = /^\[([^[\]()]+)]\([^[\]()]+\)$/; //[text](url) -> text
 const OUTER_REFERENCE_LINK_REGEX = /^\[(.*)]\[(.*)]$/; //[like][this] -> like
-const BLOCK_LINK_START_REGEX = /^(\[\[#)\^([A-Za-z0-9-]+\|[A-Za-z0-9-]+]])$/;
+const OUTER_BLOCK_LINK_REGEX = /^(\[\[#)\^([A-Za-z0-9-]+\|[A-Za-z0-9-]+]])$/; //[[#^2395bd|test]] -> [[#2395bd|test]]
 
 //Renamed matchers are for links like "# [[note title|different link text]]"
 const RENAME_BLOCK_WIKI_LINK_REGEX = /\[\[([^|\]]+)\|([^\]]+)]][^^]/g; // [[file|renamed]] or [[#^tag|newname]], not #heading ^tag
-const RENAME_BLOCK_LINKS_REGEX = /(\[\[#\^)([^[\]]*\|)([^[\]]*)(]])/g;
-const RENAME_CLEAN_TEXT_REGEX = /(([^|[\]\s]*)\|([^|[\]\s]*))/g;
+const RENAME_BLOCK_LINKS_REGEX = /(\[\[#\^)([^[\]]*\|)([^[\]]*)(]])/g; //[[#^2395bd|renamed]]
+const RENAME_CLEAN_TEXT_REGEX = /(([^|[\]\s]*)\|([^|[\]\s]*))/g; //within any | renamed link e.g., 2395bd|test -> test
 
 const FIRST_CHAR_SPECIAL_REGEX = /^[^a-zA-Z0-9]/;
 const LINK_TAG_REGEX = /(#\^)/g;
@@ -27,13 +27,15 @@ const OPEN_LINK = "[[#";
 const CLOSE_LINK = " ]]";
 const LINK_RENAME = "|";
 
-export function cleanMarkdown(stripHeadingForLink: string, pdfSettings: number, heading: string) {
-	const text = replaceOuterLinks(heading.trim());
-	const cleanText = hasInnerLinks(text) ? stripHeadingForLink : replaceEscapeCodeBlocks(text);
-	return createHeadingLinks(cleanText, pdfSettings, heading);
+export function cleanMarkdown(strippedHeading: string, pdfSettings: number, originalHeading: string) {
+	const preText = preProcessLinks(originalHeading.trim());
+	const cleanText = hasInnerLinks(preText) ? strippedHeading : replaceEscapeCodeBlocks(preText);
+	return createHeadingLinks(cleanText, pdfSettings, originalHeading);
 }
 
-function replaceOuterLinks(text: string) {
+//these replacements are "safe" to get out of the way first,
+//they should not cause any issues when we process specific link types.
+function preProcessLinks(text: string) {
 	return text
 		.replace(INNER_BLOCK_LINK_REGEX, "$1$2$3$4")
 		.replace(OUTER_WIKILINK_REGEX, "$1")
@@ -82,8 +84,8 @@ function createHeadingLinks(cleanText: string, pdfSetting: number, heading: stri
 		return getHtmlLink(blockTag, forceObsidian, fallbackText, true);
 	}
 
-	if (BLOCK_LINK_START_REGEX.test(heading)) {
-		headingText = headingText.replace(BLOCK_LINK_START_REGEX, "$1$2");
+	if (OUTER_BLOCK_LINK_REGEX.test(heading)) {
+		headingText = headingText.replace(OUTER_BLOCK_LINK_REGEX, "$1$2");
 		return getHtmlLink(cleanText, pdfSetting, formatInternalBlockLink(headingText));
 	}
 
